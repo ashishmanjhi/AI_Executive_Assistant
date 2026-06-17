@@ -104,10 +104,11 @@ class PlanExecutor:
                         logger.warning(f"Step {step.step_number} failed")
                 
                 # Reload plan to get updated step statuses
-                plan = self.planner.get_plan(plan.id)
-                if not plan:
+                reloaded_plan = self.planner.get_plan(plan.id)
+                if not reloaded_plan:
                     logger.error(f"Failed to reload plan {plan.id}")
                     return False
+                plan = reloaded_plan
         
         except Exception as e:
             logger.error(f"Plan execution failed: {e}")

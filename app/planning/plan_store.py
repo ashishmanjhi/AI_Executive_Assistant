@@ -251,7 +251,7 @@ class PlanStore:
         cursor = conn.cursor()
         
         updates = ["status = ?"]
-        values = [status]
+        values: List[Any] = [status]
         
         if result is not None:
             updates.append("result = ?")
@@ -269,7 +269,8 @@ class PlanStore:
             updates.append("completed_at = ?")
             values.append(completed_at.isoformat())
         
-        values.extend([plan_id, step_number])
+        values.append(plan_id)
+        values.append(step_number)
         
         query = f"UPDATE plan_steps SET {', '.join(updates)} WHERE plan_id = ? AND step_number = ?"
         cursor.execute(query, values)

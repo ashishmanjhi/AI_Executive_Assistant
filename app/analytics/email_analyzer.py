@@ -100,8 +100,17 @@ Example response:
         try:
             response = self.llm.invoke(prompt)
             
-            # Extract JSON from response
-            content = response.content if hasattr(response, 'content') else str(response)
+            # Extract JSON from response - ensure it's always a string
+            if hasattr(response, 'content'):
+                # Handle case where content might be a list or other type
+                content = response.content
+                if isinstance(content, list):
+                    # If it's a list, join the elements or take the first string element
+                    content = ' '.join(str(item) for item in content)
+                else:
+                    content = str(content)
+            else:
+                content = str(response)
             
             # Try to find JSON in the response
             json_match = re.search(r'\{[^}]+\}', content)
@@ -275,7 +284,7 @@ Example response:
         
         # Return category with highest score
         if scores:
-            return max(scores, key=scores.get)
+            return max(scores, key=lambda k: scores[k])
         
         return 'general'
     
@@ -303,7 +312,16 @@ Return a JSON array of 2-5 main topics. Example:
         
         try:
             response = self.llm.invoke(prompt)
-            content = response.content if hasattr(response, 'content') else str(response)
+            
+            # Extract content and ensure it's always a string
+            if hasattr(response, 'content'):
+                content = response.content
+                if isinstance(content, list):
+                    content = ' '.join(str(item) for item in content)
+                else:
+                    content = str(content)
+            else:
+                content = str(response)
             
             # Try to find JSON array in response
             json_match = re.search(r'\[.*?\]', content, re.DOTALL)

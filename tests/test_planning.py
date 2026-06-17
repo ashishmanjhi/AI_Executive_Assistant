@@ -48,6 +48,7 @@ class TestPlanStore(unittest.TestCase):
         
         plan_data = self.store.get_plan(plan_id)
         self.assertIsNotNone(plan_data)
+        assert plan_data is not None  # Type guard for type checker
         self.assertEqual(plan_data['id'], plan_id)
         self.assertEqual(plan_data['goal'], "Test goal")
         self.assertEqual(plan_data['status'], PlanStatus.PENDING.value)
@@ -109,6 +110,8 @@ class TestPlanStore(unittest.TestCase):
         )
         
         plan_data = self.store.get_plan(plan_id)
+        self.assertIsNotNone(plan_data)
+        assert plan_data is not None  # Type guard for type checker
         self.assertEqual(plan_data['status'], PlanStatus.IN_PROGRESS.value)
         self.assertIsNotNone(plan_data['started_at'])
     
@@ -216,7 +219,7 @@ class TestTaskPlanner(unittest.TestCase):
         """Test getting next executable steps"""
         # Create a plan with dependencies
         plan_id = "test_next_steps"
-        self.planner.store.add_plan(
+        self.planner.plan_store.add_plan(
             plan_id=plan_id,
             goal="Test dependencies",
             description="Test",

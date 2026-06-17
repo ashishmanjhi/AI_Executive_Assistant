@@ -165,7 +165,7 @@ class LLMConfig:
         **kwargs
     ):
         """Create Ollama LLM instance"""
-        if not OLLAMA_AVAILABLE:
+        if not OLLAMA_AVAILABLE or ChatOllama is None:
             raise ImportError("langchain-ollama not installed. Install with: pip install langchain-ollama")
         
         base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
@@ -188,7 +188,7 @@ class LLMConfig:
         **kwargs
     ):
         """Create OpenAI LLM instance"""
-        if not OPENAI_AVAILABLE:
+        if not OPENAI_AVAILABLE or ChatOpenAI is None:
             raise ImportError("langchain-openai not installed. Install with: pip install langchain-openai tiktoken")
         
         api_key = os.getenv("OPENAI_API_KEY")
@@ -211,7 +211,7 @@ class LLMConfig:
         **kwargs
     ):
         """Create Anthropic Claude LLM instance"""
-        if not ANTHROPIC_AVAILABLE:
+        if not ANTHROPIC_AVAILABLE or ChatAnthropic is None:
             raise ImportError("langchain-anthropic not installed. Install with: pip install langchain-anthropic")
         
         api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -235,7 +235,7 @@ class LLMConfig:
         **kwargs
     ):
         """Create Hugging Face LLM instance"""
-        if not HUGGINGFACE_AVAILABLE:
+        if not HUGGINGFACE_AVAILABLE or HuggingFaceEndpoint is None:
             raise ImportError("langchain-huggingface not installed. Install with: pip install langchain-huggingface")
         
         api_key = os.getenv("HUGGINGFACE_API_KEY")

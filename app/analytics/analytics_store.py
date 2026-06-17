@@ -528,6 +528,10 @@ class AnalyticsStore:
             conn.commit()
             conn.close()
             
+            # lastrowid should always be an int after INSERT, but type checker needs assurance
+            if insight_id is None:
+                raise RuntimeError("Failed to get insight ID after insert")
+            
             return insight_id
     
     def get_insights(
@@ -555,7 +559,7 @@ class AnalyticsStore:
             cursor = conn.cursor()
             
             query = "SELECT * FROM analytics_insights WHERE user_id = ?"
-            params = [user_id]
+            params: List[Any] = [user_id]
             
             if insight_type:
                 query += " AND insight_type = ?"

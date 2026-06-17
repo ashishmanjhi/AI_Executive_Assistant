@@ -96,7 +96,7 @@ class CalendarManager:
             logger.error(f"Error building calendar service: {e}")
             return False
     
-    def get_service(self):
+    def get_service(self) -> Any:
         """Get or create calendar service"""
         if not self.service:
             if not self.authenticate():

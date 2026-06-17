@@ -28,7 +28,14 @@ def daily_email_digest_job(**kwargs) -> Dict[str, Any]:
         max_emails = kwargs.get("max_emails", 20)
         
         # Generate digest
-        digest = generate_daily_digest(max_emails=max_emails)
+        # Note: generate_daily_digest is a LangChain tool, so we need to invoke it
+        digest_result = generate_daily_digest.invoke({"max_emails": max_emails})
+        
+        # Parse the result (it returns a string, not a dict)
+        digest = {
+            "summary": digest_result,
+            "emails": []  # Tool returns formatted string, not structured data
+        }
         
         # Store in memory for user to review
         agent = create_memory_agent(session_id="scheduler_daily_digest")

@@ -247,7 +247,7 @@ class TestMetricsCalculator(unittest.TestCase):
     
     def test_calculate_performance_metrics(self):
         """Test performance metrics calculation."""
-        execution_times = [100, 150, 200, 120, 180, 160, 140, 190, 110, 170]
+        execution_times = [100.0, 150.0, 200.0, 120.0, 180.0, 160.0, 140.0, 190.0, 110.0, 170.0]
         
         metrics = self.calculator.calculate_performance_metrics(execution_times)
         

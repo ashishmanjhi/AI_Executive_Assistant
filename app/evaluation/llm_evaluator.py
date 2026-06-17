@@ -78,7 +78,16 @@ Return ONLY a JSON object with this structure:
         
         try:
             result = self.llm.invoke(eval_prompt)
-            content = result.content if hasattr(result, 'content') else str(result)
+            # Ensure content is always a string for regex matching
+            if hasattr(result, 'content'):
+                content = result.content
+                # Handle case where content might be a list
+                if isinstance(content, list):
+                    content = str(content)
+                elif not isinstance(content, str):
+                    content = str(content)
+            else:
+                content = str(result)
             
             # Extract JSON from response
             json_match = re.search(r'\{.*\}', content, re.DOTALL)
@@ -136,7 +145,16 @@ Return ONLY a JSON object:
         
         try:
             result = self.llm.invoke(eval_prompt)
-            content = result.content if hasattr(result, 'content') else str(result)
+            # Ensure content is always a string for regex matching
+            if hasattr(result, 'content'):
+                content = result.content
+                # Handle case where content might be a list
+                if isinstance(content, list):
+                    content = str(content)
+                elif not isinstance(content, str):
+                    content = str(content)
+            else:
+                content = str(result)
             
             json_match = re.search(r'\{.*\}', content, re.DOTALL)
             if json_match:
@@ -199,7 +217,16 @@ Return ONLY a JSON object:
         
         try:
             result = self.llm.invoke(eval_prompt)
-            content = result.content if hasattr(result, 'content') else str(result)
+            # Ensure content is always a string for regex matching
+            if hasattr(result, 'content'):
+                content = result.content
+                # Handle case where content might be a list
+                if isinstance(content, list):
+                    content = str(content)
+                elif not isinstance(content, str):
+                    content = str(content)
+            else:
+                content = str(result)
             
             json_match = re.search(r'\{.*\}', content, re.DOTALL)
             if json_match:
@@ -263,7 +290,16 @@ Return ONLY a JSON object:
         
         try:
             result = self.llm.invoke(eval_prompt)
-            content = result.content if hasattr(result, 'content') else str(result)
+            # Ensure content is always a string for regex matching
+            if hasattr(result, 'content'):
+                content = result.content
+                # Handle case where content might be a list
+                if isinstance(content, list):
+                    content = str(content)
+                elif not isinstance(content, str):
+                    content = str(content)
+            else:
+                content = str(result)
             
             json_match = re.search(r'\{.*\}', content, re.DOTALL)
             if json_match:

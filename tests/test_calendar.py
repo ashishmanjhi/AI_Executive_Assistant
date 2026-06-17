@@ -48,6 +48,7 @@ class TestEventStore(unittest.TestCase):
         # Verify event was added
         event = self.store.get_event(event_id)
         self.assertIsNotNone(event)
+        assert event is not None  # Type narrowing for type checker
         self.assertEqual(event['summary'], "Test Meeting")
         self.assertEqual(event['location'], "Test location")
     

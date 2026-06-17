@@ -266,7 +266,7 @@ class EventStore:
             FROM calendar_events
             WHERE start_time >= ?
         """
-        params = [now.isoformat()]
+        params: List[Any] = [now.isoformat()]
         
         if calendar_id:
             query += " AND calendar_id = ?"

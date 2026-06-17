@@ -404,6 +404,10 @@ class EvaluationStore:
             conn.commit()
             conn.close()
             
+            # lastrowid should always be set after INSERT, but handle None case for type safety
+            if result_id is None:
+                raise RuntimeError("Failed to get result ID after inserting test result")
+            
             return result_id
     
     def get_test_results(
@@ -494,6 +498,10 @@ class EvaluationStore:
             metric_id = cursor.lastrowid
             conn.commit()
             conn.close()
+            
+            # lastrowid should always be set after INSERT, but handle None case for type safety
+            if metric_id is None:
+                raise RuntimeError("Failed to get metric ID after inserting evaluation metric")
             
             return metric_id
     
@@ -599,6 +607,10 @@ class EvaluationStore:
             feedback_id = cursor.lastrowid
             conn.commit()
             conn.close()
+            
+            # lastrowid should always be set after INSERT, but handle None case for type safety
+            if feedback_id is None:
+                raise RuntimeError("Failed to get feedback ID after inserting user feedback")
             
             return feedback_id
     

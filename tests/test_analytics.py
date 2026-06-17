@@ -49,6 +49,7 @@ class TestAnalyticsStore(unittest.TestCase):
         # Retrieve and verify
         analysis = self.store.get_email_analysis('test123')
         self.assertIsNotNone(analysis)
+        assert analysis is not None  # Type guard for type checker
         self.assertEqual(analysis['email_id'], 'test123')
         self.assertEqual(analysis['sentiment']['label'], 'positive')
         self.assertEqual(analysis['category'], 'meeting')
