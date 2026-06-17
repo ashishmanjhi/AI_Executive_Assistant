@@ -21,14 +21,24 @@ class PersistentCheckpointer:
         # Create data directory if it doesn't exist
         Path(db_path).parent.mkdir(parents=True, exist_ok=True)
         
-        # Initialize checkpointer
+        # Initialize checkpointer and connection
         self.checkpointer = None
+        self._conn = None
     
     def get_checkpointer(self) -> SqliteSaver:
         """Get or create the checkpointer instance"""
         if self.checkpointer is None:
-            self.checkpointer = SqliteSaver.from_conn_string(self.db_path)
+            # Create connection and enter the context manager
+            self._conn = sqlite3.connect(self.db_path)
+            self.checkpointer = SqliteSaver(self._conn)
         return self.checkpointer
+    
+    def close(self):
+        """Close the database connection"""
+        if self._conn is not None:
+            self._conn.close()
+            self._conn = None
+            self.checkpointer = None
     
     async def get_async_checkpointer(self) -> AsyncSqliteSaver:
         """Get async checkpointer for async workflows"""

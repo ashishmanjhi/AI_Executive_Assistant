@@ -1,17 +1,19 @@
 """
-Comprehensive Streamlit UI for AI Executive Assistant Phase 1-5 testing.
+Comprehensive Streamlit UI for AI Executive Assistant - All 12 Phases
 """
 
 import os
 import sys
+import json
 from pathlib import Path
 from typing import Any, cast
-
+from datetime import datetime, timedelta
 
 import streamlit as st
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage
 
+# Phase 1-5 imports
 from app.agents.supervisor_agent import create_supervisor_agent, route_query
 from app.graph.email_workflow import create_email_workflow
 from app.graph.multi_agent_workflow import create_multi_agent_system
@@ -32,10 +34,53 @@ from app.tools.rag_tools import (
     store_recent_emails,
 )
 
+# Phase 6-12 imports
+try:
+    from app.memory import MemoryStore
+    MEMORY_AVAILABLE = True
+except ImportError:
+    MEMORY_AVAILABLE = False
+
+try:
+    from app.scheduler import JobScheduler, create_scheduler, get_scheduler, register_default_jobs
+    SCHEDULER_AVAILABLE = True
+except ImportError:
+    SCHEDULER_AVAILABLE = False
+
+try:
+    from app.planning import TaskPlanner, PlanStore, PlanStatus, StepStatus
+    PLANNING_AVAILABLE = True
+except ImportError:
+    PLANNING_AVAILABLE = False
+
+try:
+    from app.calendar.calendar_manager import CalendarManager
+    CALENDAR_AVAILABLE = True
+except ImportError:
+    CALENDAR_AVAILABLE = False
+
+try:
+    from app.observability import MetricsCollector, StructuredLogger, HealthChecker
+    OBSERVABILITY_AVAILABLE = True
+except ImportError:
+    OBSERVABILITY_AVAILABLE = False
+
+try:
+    from app.analytics import EmailAnalyzer, RelationshipTracker, InsightsGenerator, AnalyticsStore
+    ANALYTICS_AVAILABLE = True
+except ImportError:
+    ANALYTICS_AVAILABLE = False
+
+try:
+    from app.evaluation import TestRunner, MetricsCalculator, LLMEvaluator, EvaluationStore
+    EVALUATION_AVAILABLE = True
+except ImportError:
+    EVALUATION_AVAILABLE = False
+
 load_dotenv()
 
 st.set_page_config(
-    page_title="AI Executive Assistant - Phase 1-5 UI",
+    page_title="AI Executive Assistant - Complete UI (12 Phases)",
     page_icon="📬",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -47,6 +92,10 @@ st.markdown(
 .block-container {padding-top: 1.2rem; padding-bottom: 2rem;}
 .main-title {font-size: 2.2rem; font-weight: 700; color: #1f4e79; margin-bottom: 0.2rem;}
 .subtle-text {color: #6b7280; margin-bottom: 1rem;}
+.metric-card {background: #f8f9fa; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #1f4e79;}
+.phase-badge {display: inline-block; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.875rem; font-weight: 600;}
+.phase-available {background: #d1fae5; color: #065f46;}
+.phase-unavailable {background: #fee2e2; color: #991b1b;}
 </style>
 """,
     unsafe_allow_html=True,
@@ -90,10 +139,17 @@ def add_history(category: str, payload: dict[str, Any]) -> None:
     st.session_state.conversation_history.insert(0, {"category": category, **payload})
 
 
+def render_phase_badge(available: bool, phase_name: str) -> str:
+    """Render a phase availability badge"""
+    status_class = "phase-available" if available else "phase-unavailable"
+    status_text = "✓ Available" if available else "✗ Not Installed"
+    return f'<span class="phase-badge {status_class}">{phase_name}: {status_text}</span>'
+
+
 def render_header() -> None:
-    st.markdown('<div class="main-title">📬 AI Executive Assistant Test Console</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">📬 AI Executive Assistant - Complete Test Console</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="subtle-text">Comprehensive Streamlit interface for Phase 1-5 Gmail, Email Ops, RAG, HITL, and Multi-Agent workflows.</div>',
+        '<div class="subtle-text">Comprehensive Streamlit interface for all 12 phases</div>',
         unsafe_allow_html=True,
     )
 
@@ -101,25 +157,46 @@ def render_header() -> None:
 def render_sidebar() -> str:
     with st.sidebar:
         st.title("Navigation")
-        pages = [
+        
+        # Core phases (always available)
+        core_pages = [
             "Overview",
             "Gmail Connection",
             "Email Operations",
             "RAG System",
             "Drafting & HITL",
             "Multi-Agent System",
-            "History & Session",
         ]
-        page = st.radio("Go to", pages, index=pages.index(st.session_state.page))
+        
+        # Advanced phases (conditional)
+        advanced_pages = []
+        if MEMORY_AVAILABLE:
+            advanced_pages.append("Memory System")
+        if SCHEDULER_AVAILABLE:
+            advanced_pages.append("Scheduler")
+        if PLANNING_AVAILABLE:
+            advanced_pages.append("Planning")
+        if CALENDAR_AVAILABLE:
+            advanced_pages.append("Calendar")
+        if OBSERVABILITY_AVAILABLE:
+            advanced_pages.append("Observability")
+        if ANALYTICS_AVAILABLE:
+            advanced_pages.append("Analytics")
+        if EVALUATION_AVAILABLE:
+            advanced_pages.append("Evaluation")
+        
+        advanced_pages.append("History & Session")
+        
+        all_pages = core_pages + advanced_pages
+        
+        page = st.radio("Go to", all_pages, index=all_pages.index(st.session_state.page) if st.session_state.page in all_pages else 0)
         st.session_state.page = page
 
         st.divider()
         st.subheader("Environment")
-        st.caption(f"Ollama URL: {os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')}")
-        st.caption(f"Model: {os.getenv('OLLAMA_MODEL', 'qwen3:4b')}")
+        st.caption(f"LLM Provider: {os.getenv('LLM_PROVIDER', 'ollama')}")
+        st.caption(f"Model: {os.getenv('OLLAMA_MODEL', 'llama3.2:latest')}")
         st.caption(f"ChromaDB: {os.getenv('CHROMADB_PATH', './data/chromadb')}")
-        st.caption(f"Credentials: {'Found' if Path('credentials.json').exists() else 'Missing'}")
-        st.caption(f"Token: {'Found' if Path('token.pickle').exists() else 'Missing'}")
 
         st.divider()
         if st.button("Clear All Session Data", use_container_width=True):
@@ -132,24 +209,40 @@ def render_sidebar() -> str:
 
 def render_overview() -> None:
     st.subheader("System Overview")
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Credentials File", "Available" if Path("credentials.json").exists() else "Missing")
-    col2.metric("OAuth Token", "Available" if Path("token.pickle").exists() else "Missing")
-    col3.metric("ChromaDB Path", "Ready" if Path(os.getenv("CHROMADB_PATH", "./data/chromadb")).exists() else "Not Ready")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Credentials", "✓" if Path("credentials.json").exists() else "✗")
+    col2.metric("OAuth Token", "✓" if Path("token.pickle").exists() else "✗")
+    col3.metric("ChromaDB", "✓" if Path(os.getenv("CHROMADB_PATH", "./data/chromadb")).exists() else "✗")
+    col4.metric("Memory DB", "✓" if Path("data/memory.db").exists() else "✗")
 
-    st.markdown(
-        """
-### Available Phase Coverage
-- **Phase 1:** Gmail authentication and recent email access
-- **Phase 2:** Email operations and conversational email agent
-- **Phase 3:** RAG indexing, semantic search, Q&A, action item extraction
-- **Phase 4:** Email drafting with human-in-the-loop approval workflow
-- **Phase 5:** Supervisor-routed multi-agent system with specialized agents
-"""
-    )
-    st.info("Use the sidebar to test each subsystem independently with loading states, error handling, and session history.")
+    st.markdown("### 🎯 Phase Status")
+    
+    # Core phases
+    st.markdown("#### Core Email & Agent Features (Phases 1-5)")
+    st.markdown(render_phase_badge(True, "Phase 1: Gmail"), unsafe_allow_html=True)
+    st.markdown(render_phase_badge(True, "Phase 2: Email Ops"), unsafe_allow_html=True)
+    st.markdown(render_phase_badge(True, "Phase 3: RAG"), unsafe_allow_html=True)
+    st.markdown(render_phase_badge(True, "Phase 4: HITL"), unsafe_allow_html=True)
+    st.markdown(render_phase_badge(True, "Phase 5: Multi-Agent"), unsafe_allow_html=True)
+    
+    # Advanced phases
+    st.markdown("#### Advanced Features (Phases 6-9)")
+    st.markdown(render_phase_badge(MEMORY_AVAILABLE, "Phase 6: Memory"), unsafe_allow_html=True)
+    st.markdown(render_phase_badge(SCHEDULER_AVAILABLE, "Phase 7: Scheduler"), unsafe_allow_html=True)
+    st.markdown(render_phase_badge(PLANNING_AVAILABLE, "Phase 8: Planning"), unsafe_allow_html=True)
+    st.markdown(render_phase_badge(CALENDAR_AVAILABLE, "Phase 9: Calendar"), unsafe_allow_html=True)
+    
+    # Intelligence phases
+    st.markdown("#### Intelligence & Monitoring (Phases 10-12)")
+    st.markdown(render_phase_badge(OBSERVABILITY_AVAILABLE, "Phase 10: Observability"), unsafe_allow_html=True)
+    st.markdown(render_phase_badge(ANALYTICS_AVAILABLE, "Phase 11: Analytics"), unsafe_allow_html=True)
+    st.markdown(render_phase_badge(EVALUATION_AVAILABLE, "Phase 12: Evaluation"), unsafe_allow_html=True)
+    
+    st.info("✨ Use the sidebar to navigate to available phases. Install missing dependencies to enable additional phases.")
 
 
+# Import all render functions from original file
 def render_gmail_connection() -> None:
     st.subheader("1. Gmail Authentication & Connection")
     st.markdown(
@@ -532,6 +625,84 @@ def render_history_session() -> None:
                 st.json(item)
 
 
+def render_memory_system() -> None:
+    st.subheader("6. Memory System")
+    if not MEMORY_AVAILABLE:
+        st.error("Memory module not available. Install dependencies: pip install -r requirements.txt")
+        return
+    
+    st.info("Memory System UI - Store conversations, preferences, and long-term knowledge")
+    st.markdown("**Features:** Conversation history, User preferences, Episodic memory, Semantic memory")
+    st.warning("Full implementation requires MemoryStore initialization")
+
+
+def render_scheduler() -> None:
+    st.subheader("7. Job Scheduler")
+    if not SCHEDULER_AVAILABLE:
+        st.error("Scheduler module not available. Install dependencies: pip install apscheduler")
+        return
+    
+    st.info("Job Scheduler UI - Autonomous job scheduling with cron and interval triggers")
+    st.markdown("**Features:** Active jobs, Job history, Schedule new jobs")
+    st.warning("Full implementation requires JobScheduler initialization")
+
+
+def render_planning() -> None:
+    st.subheader("8. Task Planning")
+    if not PLANNING_AVAILABLE:
+        st.error("Planning module not available. Install dependencies: pip install -r requirements.txt")
+        return
+    
+    st.info("Task Planning UI - Multi-step task planning and execution")
+    st.markdown("**Features:** Create plans, Active plans, Plan history, Step execution")
+    st.warning("Full implementation requires TaskPlanner initialization")
+
+
+def render_calendar() -> None:
+    st.subheader("9. Calendar Integration")
+    if not CALENDAR_AVAILABLE:
+        st.error("Calendar module not available. Install dependencies: pip install google-api-python-client")
+        return
+    
+    st.info("Calendar UI - Google Calendar integration and event management")
+    st.markdown("**Features:** View events, Create events, Update events, Calendar sync")
+    st.warning("Full implementation requires CalendarManager initialization and OAuth")
+
+
+def render_observability() -> None:
+    st.subheader("10. Observability & Monitoring")
+    if not OBSERVABILITY_AVAILABLE:
+        st.error("Observability module not available. Install dependencies: pip install -r requirements.txt")
+        return
+    
+    st.info("Observability UI - Metrics, logging, and health checks")
+    st.markdown("**Features:** System metrics, Health status, Logs viewer, Performance monitoring")
+    st.warning("Full implementation requires MetricsCollector and HealthChecker initialization")
+
+
+def render_analytics() -> None:
+    st.subheader("11. Email Analytics & Intelligence")
+    if not ANALYTICS_AVAILABLE:
+        st.error("Analytics module not available. Install dependencies: pip install -r requirements.txt")
+        return
+    
+    st.info("Analytics UI - Email intelligence, sentiment analysis, and insights")
+    st.markdown("**Features:** Sentiment analysis, Priority scoring, Relationship tracking, Topic extraction, Insights generation")
+    st.warning("Full implementation requires EmailAnalyzer and InsightsGenerator initialization")
+
+
+def render_evaluation() -> None:
+    st.subheader("12. Agent Evaluation Framework")
+    if not EVALUATION_AVAILABLE:
+        st.error("Evaluation module not available. Install dependencies: pip install -r requirements.txt")
+        return
+    
+    st.info("Evaluation UI - Test cases, metrics, and LLM evaluation")
+    st.markdown("**Features:** Test runner, Metrics calculator, LLM evaluator, Performance reports")
+    st.warning("Full implementation requires TestRunner and MetricsCalculator initialization")
+
+
+
 def main() -> None:
     initialize_session_state()
     render_header()
@@ -550,13 +721,29 @@ def main() -> None:
             render_drafting_hitl()
         elif page == "Multi-Agent System":
             render_multi_agent_system()
+        elif page == "Memory System":
+            render_memory_system()
+        elif page == "Scheduler":
+            render_scheduler()
+        elif page == "Planning":
+            render_planning()
+        elif page == "Calendar":
+            render_calendar()
+        elif page == "Observability":
+            render_observability()
+        elif page == "Analytics":
+            render_analytics()
+        elif page == "Evaluation":
+            render_evaluation()
         elif page == "History & Session":
             render_history_session()
     except Exception as exc:
         st.error(f"Unexpected UI error: {exc}")
+        import traceback
+        st.code(traceback.format_exc())
 
     st.markdown("---")
-    st.caption(f"Python {sys.version.split()[0]} | Streamlit UI for AI Executive Assistant Phase 1-5")
+    st.caption(f"Python {sys.version.split()[0]} | Streamlit UI for AI Executive Assistant - All 12 Phases")
 
 
 if __name__ == "__main__":
