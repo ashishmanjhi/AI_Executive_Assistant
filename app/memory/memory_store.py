@@ -36,10 +36,16 @@ class MemoryStore:
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
                 role TEXT NOT NULL,
                 content TEXT NOT NULL,
-                metadata TEXT,
-                INDEX idx_session (session_id),
-                INDEX idx_timestamp (timestamp)
+                metadata TEXT
             )
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_session ON conversations(session_id)
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_timestamp ON conversations(timestamp)
         """)
         
         # User preferences table
@@ -59,11 +65,20 @@ class MemoryStore:
                 event_type TEXT NOT NULL,
                 description TEXT NOT NULL,
                 context TEXT,
-                importance INTEGER DEFAULT 5,
-                INDEX idx_event_type (event_type),
-                INDEX idx_timestamp (timestamp),
-                INDEX idx_importance (importance)
+                importance INTEGER DEFAULT 5
             )
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_event_type ON episodic_memory(event_type)
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_episodic_timestamp ON episodic_memory(timestamp)
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_importance ON episodic_memory(importance)
         """)
         
         # Semantic memory (facts, knowledge)
@@ -77,9 +92,12 @@ class MemoryStore:
                 source TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(category, key),
-                INDEX idx_category (category)
+                UNIQUE(category, key)
             )
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_category ON semantic_memory(category)
         """)
         
         # Procedural memory (learned patterns, workflows)

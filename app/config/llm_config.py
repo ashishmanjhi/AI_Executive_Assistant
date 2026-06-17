@@ -19,12 +19,37 @@ from typing import Any, Optional
 from enum import Enum
 import logging
 
-from langchain_ollama import ChatOllama
-from langchain_openai import ChatOpenAI
-from langchain_anthropic import ChatAnthropic
-from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.language_models import BaseChatModel
 from dotenv import load_dotenv
+
+# Import providers conditionally
+try:
+    from langchain_ollama import ChatOllama
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    OLLAMA_AVAILABLE = False
+    ChatOllama = None
+
+try:
+    from langchain_openai import ChatOpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    ChatOpenAI = None
+
+try:
+    from langchain_anthropic import ChatAnthropic
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ANTHROPIC_AVAILABLE = False
+    ChatAnthropic = None
+
+try:
+    from langchain_huggingface import HuggingFaceEndpoint
+    HUGGINGFACE_AVAILABLE = True
+except ImportError:
+    HUGGINGFACE_AVAILABLE = False
+    HuggingFaceEndpoint = None
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -138,8 +163,11 @@ class LLMConfig:
         max_tokens: int,
         streaming: bool,
         **kwargs
-    ) -> ChatOllama:
+    ):
         """Create Ollama LLM instance"""
+        if not OLLAMA_AVAILABLE:
+            raise ImportError("langchain-ollama not installed. Install with: pip install langchain-ollama")
+        
         base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
         
         # Note: ChatOllama doesn't support streaming parameter in constructor
@@ -158,8 +186,11 @@ class LLMConfig:
         max_tokens: int,
         streaming: bool,
         **kwargs
-    ) -> ChatOpenAI:
+    ):
         """Create OpenAI LLM instance"""
+        if not OPENAI_AVAILABLE:
+            raise ImportError("langchain-openai not installed. Install with: pip install langchain-openai tiktoken")
+        
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY not found in environment")
@@ -178,8 +209,11 @@ class LLMConfig:
         max_tokens: int,
         streaming: bool,
         **kwargs
-    ) -> ChatAnthropic:
+    ):
         """Create Anthropic Claude LLM instance"""
+        if not ANTHROPIC_AVAILABLE:
+            raise ImportError("langchain-anthropic not installed. Install with: pip install langchain-anthropic")
+        
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise ValueError("ANTHROPIC_API_KEY not found in environment")
@@ -199,8 +233,11 @@ class LLMConfig:
         max_tokens: int,
         streaming: bool,
         **kwargs
-    ) -> HuggingFaceEndpoint:
+    ):
         """Create Hugging Face LLM instance"""
+        if not HUGGINGFACE_AVAILABLE:
+            raise ImportError("langchain-huggingface not installed. Install with: pip install langchain-huggingface")
+        
         api_key = os.getenv("HUGGINGFACE_API_KEY")
         if not api_key:
             raise ValueError("HUGGINGFACE_API_KEY not found in environment")
