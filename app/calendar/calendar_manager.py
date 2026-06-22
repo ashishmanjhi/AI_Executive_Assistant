@@ -161,8 +161,6 @@ class CalendarManager:
             if not time_max:
                 time_max = time_min + timedelta(days=30)
             
-            logger.info(f"Fetching events from {time_min} to {time_max}")
-            
             # Fetch events from Google Calendar
             events_result = service.events().list(
                 calendarId=calendar_id,
@@ -186,12 +184,8 @@ class CalendarManager:
             return events
             
         except HttpError as e:
-            logger.error(f"HTTP Error getting events: {e}")
-            logger.error(f"Error details: {e.resp.status} - {e.content}")
-            raise  # Re-raise to let UI handle it
-        except Exception as e:
-            logger.error(f"Unexpected error getting events: {e}")
-            raise  # Re-raise to let UI handle it
+            logger.error(f"Error getting events: {e}")
+            return []
     
     def create_event(
         self,
