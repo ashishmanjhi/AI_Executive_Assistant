@@ -9,7 +9,6 @@ import logging
 from typing import Literal
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_ollama import ChatOllama
-from langgraph.prebuilt import create_react_agent
 import os
 
 logger = logging.getLogger(__name__)
@@ -52,16 +51,22 @@ Your role is to analyze user queries and route them to the appropriate specializ
 - "Search emails semantically"
 - "Answer questions from email content"
 
-### 3. Calendar Agent (Future)
+### 3. Calendar Agent
 **Handles:**
-- Scheduling meetings
-- Calendar management
-- Availability checking
+- Viewing calendar events
+- Creating/scheduling meetings
+- Checking availability
+- Finding free time slots
+- Managing calendars
 
 **Route to Calendar Agent when user wants to:**
+- "What's on my calendar?"
 - "Schedule a meeting"
-- "Check my calendar"
+- "Create an event"
 - "When am I free?"
+- "Check my availability"
+- "Find free time on Friday"
+- "List my calendars"
 
 ## Routing Decision Process:
 
@@ -162,8 +167,6 @@ def route_query(supervisor_llm, query: str) -> dict:
     """
     try:
         # Create messages with system prompt and user query
-        from langchain_core.messages import SystemMessage, HumanMessage
-        
         messages = [
             SystemMessage(content=SUPERVISOR_SYSTEM_PROMPT),
             HumanMessage(content=f"""Analyze this user query and decide which agent should handle it.
